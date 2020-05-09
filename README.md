@@ -15,4 +15,3 @@ https://yesjiyoung.github.io/
 
 Team Intro Page 링크를 누르면, 팀소개 페이지로 들어갈 수 있습니다.
 https://yesjiyoung.github.io/MyProfile_and_TeamProfile.github.io/team_itro.html
-![_link2screen_yesjiyoung github io_team_intro](https://user-images.githubusercontent.com/51046701/81481237-7d527a00-9269-11ea-8a79-eb835e419820.JPG)

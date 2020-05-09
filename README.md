@@ -10,6 +10,7 @@ https://yesjiyoung.github.io/MyProfile_and_TeamProfile.github.io/
 
 ### Private web-page 링크를 타고들어가면, yesjiyoung.github.io페이지로 들어갈 수 있습니다.
 https://yesjiyoung.github.io/
+
 ![_link1screen_yesjiyong github io](https://user-images.githubusercontent.com/51046701/81481166-159c2f00-9269-11ea-80f7-e7cd081599ae.JPG)
 
 

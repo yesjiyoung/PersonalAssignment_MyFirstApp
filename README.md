@@ -1,4 +1,4 @@
-# MyGitpagesApp Screen shot
+# 6th_assignment MyGitpagesApp Screen shot
 ### 6주차 과제 MyGitpagesApp의 첫 화면.
 https://yesjiyoung.github.io/MyProfile_and_TeamProfile.github.io/
 

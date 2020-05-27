@@ -1,6 +1,8 @@
 package com.loyid.weatherforecast;
 
 
+// [Assignment_1+2] android.content.Intent
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -65,6 +67,12 @@ public class MainFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 String forecast = mForecastAdapter.getItem(position);
                 Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
+
+
+                //[Assignment_1+2] 추가하는 부분.
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                intent.putExtra("data", forecast);
+                startActivity(intent);
             }
         });
 

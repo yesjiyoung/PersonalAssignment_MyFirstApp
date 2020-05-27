@@ -22,3 +22,5 @@
 
     tools:context="com.loyid.weatherforecast.MainFragment"
     tools:layout="@android:layout/list_content"/>
+
+

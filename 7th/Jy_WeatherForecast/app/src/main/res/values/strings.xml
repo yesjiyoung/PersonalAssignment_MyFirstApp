@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">WeatherForecast</string>
+
+
+    <!--[Assignment_1]수정해야 할 부분인가?-->
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

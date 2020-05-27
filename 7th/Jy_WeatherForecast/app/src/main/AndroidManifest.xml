@@ -30,6 +30,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.loyid.weatherforecast.MainActivity" />
         </activity>
+
+        <!--[Assignment_6]-->
+        <service
+            android:name=".FetchWeatherService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

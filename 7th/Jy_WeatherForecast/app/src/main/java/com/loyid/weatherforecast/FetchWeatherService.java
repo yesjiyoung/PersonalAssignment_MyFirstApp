@@ -1,47 +1,19 @@
+//[Assignment_6]Add Service which is named FetchWeatherService.
 package com.loyid.weatherforecast;
 
-
-// [Assignment_1+2] android.content.Intent
+import android.app.Service;
 import android.content.Intent;
-
-// [Assignment_5] Fetching data Using SharedPreference which is set above.
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
-// [Assignment_6]
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.IntentFilter;
-
-// [Assignment_3] add android.util.log
-import android.util.Log;
-
-// [Assignment_4] add android.os.AsyncTask;
-import android.os.AsyncTask;
-
-// [Assignment_5] add multiple packages...
 import android.net.Uri;
-import android.support.annotation.Nullable;
+import android.os.AsyncTask;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.text.format.Time;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
-
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,161 +21,50 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-// [Assignment_5]
 import java.text.SimpleDateFormat;
 
+public class FetchWeatherService extends Service {
+    public static final String ACTION_RETRIEVE_WEATHER_DATA = "com.loyid.weatherforecast.RETRIEVE_DATA";
+    public static final String EXTRA_WEATHER_DATA = "weather-data";
+    public FetchWeatherService() {
+    }
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
 
-
-/**
- * A simple {@link Fragment} subclass.
- */
-public class MainFragment extends Fragment {
-
-    private ArrayAdapter<String> mForecastAdapter;
-
-    // [Assignment_6] BroadcastReceiver
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action.equals(FetchWeatherService.ACTION_RETRIEVE_WEATHER_DATA)) {
-                String[] data = intent.getStringArrayExtra(FetchWeatherService.EXTRA_WEATHER_DATA);
-                mForecastAdapter.clear();
-                for(String dayForecastStr : data) {
-                    mForecastAdapter.add(dayForecastStr);
-                }
-            }
+        String action = intent.getAction();
+        if (action.equals(ACTION_RETRIEVE_WEATHER_DATA)) {
+            retrieveWeatherData(startId);
         }
-    };
-    // ~[Assignment_6]
-
-
-    public MainFragment() {
-        // Required empty public constructor
+        return super.onStartCommand(intent, flags, startId);
     }
 
-
-    //[Assignmet_5] add json methods...
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+    private void retrieveWeatherData(int startId) {
+        FetchWeatherTask weatherTask = new FetchWeatherTask(startId);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String cityId = prefs.getString("city", "1835847");
+        weatherTask.execute(cityId);
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_fragment_main, menu);
+    public IBinder onBind(Intent intent) {
+        // TODO: Return the communication channel to the service.
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            //FetchWeatherTask weatherTask = new FetchWeatherTask();
-            //weatherTask.execute("1835847");
-            //[Assignment_5]add method()
-            refreshWeatherData();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    private void refreshWeatherData() {
-        //FetchWeatherTask weatherTask = new FetchWeatherTask();
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        //String cityId = prefs.getString("city", "1835847");
-        //weatherTask.execute(cityId);
-        // [Assignment_6]
-        Intent intent = new Intent(getActivity(), FetchWeatherService.class);
-        intent.setAction(FetchWeatherService.ACTION_RETRIEVE_WEATHER_DATA);
-        getActivity().startService(intent);
-        //~[Assignment_6]
-    }
-    //~[Assignment_5]
-
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Create some dummy data for the ListView.  Here's a sample weekly forecast
-        String[] data = {
-                "Mon 6/23 - Sunny - 31/17",
-                "Tue 6/24 - Foggy - 21/8",
-                "Wed 6/25 - Cloudy - 22/17",
-                "Thurs 6/26 - Rainy - 18/11",
-                "Fri 6/27 - Foggy - 21/10",
-                "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-                "Sun 6/29 - Sunny - 20/7"
-        };
-
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
-
-        // Now that we have some dummy forecast data, create an ArrayAdapter.
-        // The ArrayAdapter will take data from a source (like our dummy forecast) and
-        // use it to populate the ListView it's attached to.
-        mForecastAdapter =
-                new ArrayAdapter<String>(
-                        getActivity(), // The current context (this activity)
-                        R.layout.list_item_forecast, // The name of the layout ID.
-                        R.id.list_item_forecast_textview, // The ID of the textview to populate.
-                        weekForecast);
-
-        // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        // Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        listView.setAdapter(mForecastAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                String forecast = mForecastAdapter.getItem(position);
-                Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
-
-
-                //[Assignment_1+2] 추가하는 부분.
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra("data", forecast);
-                //startActivity(intent);
-            }
-        });
-
-        //[Assignment_5] 아래 Assignment_4 주석처리
-
-        /*
-        //[Assignment_4] 추가!
-        FetchWeatherTask weatherTask = new FetchWeatherTask();
-        weatherTask.execute();*/
-
-        // [Assignment_6] Broadcast action
-        IntentFilter intentFilter = new IntentFilter(FetchWeatherService.ACTION_RETRIEVE_WEATHER_DATA);
-        getActivity().registerReceiver(mBroadcastReceiver, intentFilter);
-
-        return rootView;
-    }
-
-
-/*  //[Assignment_6]
-    //[Assignment_5] Changing AsyncTask's parmeter (void->string)
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
-        *//*
-        //[Assignment_4] Add AsyncTask to resolve NetworkOnMainException.
-    public class FetchWeatherTask extends AsyncTask<Void, Void, Void> {*//*
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
+        private int mStartId = -1;
 
+        public FetchWeatherTask(int startId) {
+            Log.d(LOG_TAG, "asfdasdfafd", new RuntimeException());
+            mStartId = startId;
+        }
 
-        //[Assignment_5] adding!
-        *//* The date/time conversion code is going to be moved outside the asynctask later,
+        /* The date/time conversion code is going to be moved outside the asynctask later,
          * so for convenience we're breaking it out into its own method now.
-         *//*
+         */
         private String getReadableDateString(long time){
             // Because the API returns a unix timestamp (measured in seconds),
             // it must be converted to milliseconds in order to be converted to valid date.
@@ -211,9 +72,9 @@ public class MainFragment extends Fragment {
             return shortenedDateFormat.format(time);
         }
 
-        *//**
+        /**
          * Prepare the weather high/lows for presentation.
-         *//*
+         */
         private String formatHighLows(double high, double low) {
             // For presentation, assume the user doesn't care about tenths of a degree.
             long roundedHigh = Math.round(high);
@@ -223,13 +84,13 @@ public class MainFragment extends Fragment {
             return highLowStr;
         }
 
-        *//**
+        /**
          * Take the String representing the complete forecast in JSON Format and
          * pull out the data we need to construct the Strings needed for the wireframes.
          *
          * Fortunately parsing is easy:  constructor takes the JSON string and converts it
          * into an Object hierarchy for us.
-         *//*
+         */
         private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
                 throws JSONException {
 
@@ -300,13 +161,6 @@ public class MainFragment extends Fragment {
 
         }
 
-        //~[Assignment_5]
-
-
-
-
-        //protected Void doInBackground(Void... params) {
-        //[Assignment_5]~
         @Override
         protected String[] doInBackground(String... params) {
 
@@ -314,8 +168,6 @@ public class MainFragment extends Fragment {
             if (params.length == 0) {
                 return null;
             }
-            //~[Assignment_5]
-
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -325,23 +177,14 @@ public class MainFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
 
-            //[Assignment_5]~
             String format = "json";
             String units = "metric";
             int numDays = 7;
-            //~[Assignment_5]
-
 
             try {
                 // Construct the URL for the OpenWeatherMap query
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
-
-                //String baseUrl = "http://api.openweathermap.org/data/2.5/forecast/daily?id=1835847&mode=json&units=metric&cnt=7";
-                //String apiKey = "a12c25f594effdcee803248d900b3da3";
-                //URL url = new URL(baseUrl.concat(apiKey));
-
-                //[Assignment_5]~
                 final String FORECAST_BASE_URL =
                         "http://api.openweathermap.org/data/2.5/forecast/daily?";
                 final String QUERY_PARAM = "id";
@@ -361,8 +204,6 @@ public class MainFragment extends Fragment {
                 URL url = new URL(builtUri.toString());
 
                 Log.v(LOG_TAG, "Built URI " + builtUri.toString());
-                //~[Assignment_5]
-
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -392,9 +233,7 @@ public class MainFragment extends Fragment {
                 }
                 forecastJsonStr = buffer.toString();
 
-                //[Assignment_5]
                 Log.v(LOG_TAG, "Forecast string: " + forecastJsonStr);
-                //~[Assignment_5]
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -413,7 +252,6 @@ public class MainFragment extends Fragment {
                 }
             }
 
-            //[Assignment_5]
             try {
                 return getWeatherDataFromJson(forecastJsonStr, numDays);
             } catch (JSONException e) {
@@ -422,27 +260,22 @@ public class MainFragment extends Fragment {
             }
 
             // This will only happen if there was an error getting or parsing the forecast.
-            //~[Assignment_5]
             return null;
         }
-        //[Assignment_5]
+
         @Override
         protected void onPostExecute(String[] result) {
             if (result != null) {
-                mForecastAdapter.clear();
-                for(String dayForecastStr : result) {
-                    mForecastAdapter.add(dayForecastStr);
-                }
-                // New data is back from the server.  Hooray!
+                notifyWeatherDataRetrieved(result);
             }
-        }
-        //~[Assignment_5]*/
 
-    //[Assignment_6]
-    @Override
-    public void onDestroyView() {
-        getActivity().unregisterReceiver(mBroadcastReceiver);
-        super.onDestroyView();
+            stopSelf(mStartId);
+        }
     }
-    //~[Assignment_6]
+
+    private void notifyWeatherDataRetrieved(String[] result) {
+        Intent intent = new Intent(ACTION_RETRIEVE_WEATHER_DATA);
+        intent.putExtra(EXTRA_WEATHER_DATA, result);
+        sendBroadcast(intent);
+    }
 }

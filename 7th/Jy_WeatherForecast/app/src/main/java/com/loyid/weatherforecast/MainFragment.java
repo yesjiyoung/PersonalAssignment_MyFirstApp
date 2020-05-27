@@ -13,6 +13,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
 
+// [Assignment_7]
+import android.content.ComponentName;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.RemoteException;
+
 // [Assignment_3] add android.util.log
 import android.util.Log;
 
@@ -65,6 +71,7 @@ import java.util.List;
 public class MainFragment extends Fragment {
 
     private ArrayAdapter<String> mForecastAdapter;
+    private IFetchWeatherService mService;
 
     // [Assignment_6] BroadcastReceiver
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -82,6 +89,36 @@ public class MainFragment extends Fragment {
     };
     // ~[Assignment_6]
 
+    // [Assignment_7]
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = IFetchWeatherService.Stub.asInterface(service);
+
+            try {
+                mService.registerFetchDataListener(mFetchDataListener);
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+    };
+
+    private IFetchDataListener.Stub mFetchDataListener = new IFetchDataListener.Stub() {
+        @Override
+        public void onWeatherDataRetrieved(String[] data) throws RemoteException {
+            mForecastAdapter.clear();
+            for(String dayForecastStr : data) {
+                mForecastAdapter.add(dayForecastStr);
+            }
+        }
+    } ;
+
+    // ~[Assignment_7]
 
     public MainFragment() {
         // Required empty public constructor
@@ -93,6 +130,20 @@ public class MainFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        getActivity().bindService(new Intent(getActivity(), FetchWeatherService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mService != null) {
+            try {
+                mService.unregisterFetchDataListener(mFetchDataListener);
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
+        }
+        getActivity().unbindService(mServiceConnection);
+        super.onDestroy();
     }
 
     @Override
@@ -121,10 +172,18 @@ public class MainFragment extends Fragment {
         //String cityId = prefs.getString("city", "1835847");
         //weatherTask.execute(cityId);
         // [Assignment_6]
-        Intent intent = new Intent(getActivity(), FetchWeatherService.class);
+/*        Intent intent = new Intent(getActivity(), FetchWeatherService.class);
         intent.setAction(FetchWeatherService.ACTION_RETRIEVE_WEATHER_DATA);
-        getActivity().startService(intent);
+        getActivity().startService(intent);*/
         //~[Assignment_6]
+
+        if (mService != null) {
+            try {
+                mService.retrieveWeatherData();
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
     //~[Assignment_5]
 
@@ -183,8 +242,8 @@ public class MainFragment extends Fragment {
         weatherTask.execute();*/
 
         // [Assignment_6] Broadcast action
-        IntentFilter intentFilter = new IntentFilter(FetchWeatherService.ACTION_RETRIEVE_WEATHER_DATA);
-        getActivity().registerReceiver(mBroadcastReceiver, intentFilter);
+        // IntentFilter intentFilter = new IntentFilter(FetchWeatherService.ACTION_RETRIEVE_WEATHER_DATA);
+        //getActivity().registerReceiver(mBroadcastReceiver, intentFilter);
 
         return rootView;
     }
@@ -441,7 +500,7 @@ public class MainFragment extends Fragment {
     //[Assignment_6]
     @Override
     public void onDestroyView() {
-        getActivity().unregisterReceiver(mBroadcastReceiver);
+        //getActivity().unregisterReceiver(mBroadcastReceiver);
         super.onDestroyView();
     }
     //~[Assignment_6]

@@ -13,7 +13,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
 
-// [Assignment_7]
+// [Assignment_7+8]
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
@@ -89,7 +89,7 @@ public class MainFragment extends Fragment {
     };
     // ~[Assignment_6]
 
-    // [Assignment_7]
+    // [Assignment_7+8]
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -118,7 +118,7 @@ public class MainFragment extends Fragment {
         }
     } ;
 
-    // ~[Assignment_7]
+    // ~[Assignment_7+8]
 
     public MainFragment() {
         // Required empty public constructor
